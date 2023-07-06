@@ -1,48 +1,57 @@
-import javax.swing.plaf.nimbus.State;
 import java.util.ArrayList;
 
 public class DFA {
-    ArrayList<State>DStates=new ArrayList<>();
-    ArrayList<State>nstates=new ArrayList<>();
-    ArrayList<Character>T;
-    String [][]NTT;
-    String [][]DTT;
-    public DFA(ArrayList<State> NS,ArrayList<Character> Terminal,String[][]NTT){
-        DStates=NS;
-        T=Terminal;
-        this.NTT=NTT;
-    }
-    public void spliteM(String [][]NTT){
-        ArrayList<String>start=new ArrayList<>();
-        ArrayList<String>end=new ArrayList<>();
-        for (int i=0; i<NTT.length;i++){
-            String []v=new String[1];
-            v[0]=NTT[i][1];
-            v[1]=NTT[i][2];
-            String []W=new String[1];
-            W[0]=NTT[i][1];
-            W[1]=NTT[i][0];
-            start.add(Integer.parseInt(NTT[i][0]),toString(v));
-            end.add(Integer.parseInt(NTT[i][3]),toString(W));
+    ArrayList<StateDFA> States = new ArrayList<>();
+
+
+    public static DFA DFA_complementation(DFA dfa) {
+        //DFA comp = new DFA(); copy
+        DFA comp = dfa;
+        int StateNumber = comp.States.size();
+        for (int i = 0; i < StateNumber; i++) {
+            comp.States.get(i).isFinal = !comp.States.get(i).isFinal;
         }
-    }
-    public void nfaTTtodfaTT(String [][]ntt){
-        spliteM(ntt);
-
+        return comp;
     }
 
-    private String toString(String[] s) {
-        String S=new String();
-        for(int i=0;i<s.length;i++){
-            S+=Integer.toString(Integer.parseInt(s[i]));
+    public static DFA DFA_intersection(DFA dfa1, DFA dfa2, int TerminalNumber) {
+        DFA inters = new DFA();
+        int interSize = dfa1.States.size() * dfa2.States.size();
+        int n = 0;
+        for (int i = 0; i < dfa1.States.size(); i++) {
+            for (int j = 0; j < dfa2.States.size(); j++) {
+                StateDFA newState = new StateDFA(n);
+                newState.DFAStateSubset[0] = dfa1.States.get(i);
+                newState.DFAStateSubset[1] = dfa2.States.get(j);
+                newState.isStart = newState.DFAStateSubset[0].isStart && newState.DFAStateSubset[1].isStart;
+                newState.isFinal = newState.DFAStateSubset[0].isFinal && newState.DFAStateSubset[1].isFinal;
+                n++;
+            }
         }
-        return S;
+        for (int i = 0; i < interSize; i++) {
+            for (int j = 0; j < TerminalNumber; j++) {
+                int no1 = inters.States.get(i).DFAStateSubset[0].Transitions.get(j).no;
+                int no2 = inters.States.get(i).DFAStateSubset[1].Transitions.get(j).no;
+                for (int k = 0; k < interSize; k++) {
+                    if (inters.States.get(k).DFAStateSubset[0].no == no1 && inters.States.get(k).DFAStateSubset[1].no == no2) {
+                        inters.States.get(i).Transitions.add(inters.States.get(k));
+                        break;
+                    }
+                }
+            }
+        }
+        return inters;
     }
 
-//    private String toString(String s) {
-//        String S=new String();
-//        S=Integer.toString(Integer.parseInt(s));
-//        return s;
-//    }
+    public static boolean DFA_isEmpty(DFA dfa, int TerminalNumber) {
+        boolean result = false;
+        int[] mark = new int[TerminalNumber];
+        StateDFA start = dfa.States.get(0);
+        if (mark[0] == 0) {
+            //visit();
+        }
+        return result;
+    }
+
+    //private
 }
-

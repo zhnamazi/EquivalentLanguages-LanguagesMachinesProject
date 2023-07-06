@@ -1,11 +1,16 @@
+import javax.swing.plaf.nimbus.State;
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class CompareRegex {
 
     ArrayList<Character> L1 = new ArrayList<>();
     ArrayList<Character> L2 = new ArrayList<>();
     ArrayList<Character> Terminals = new ArrayList<>();
-    boolean isEquivalent;
+    NFA NFA_L1;
+    NFA NFA_L2;
+    int TerminalNumber;
+    boolean isEquivalent = true;
 
 
     public CompareRegex(String reg1, String reg2) {
@@ -79,15 +84,122 @@ public class CompareRegex {
             }
         }
         for (i = 0; i < L2.size(); i++) {
-            if (L1.get(i) > 96 && L1.get(i) < 123 && !Terminals.contains(L1.get(i))) {
+            if (L2.get(i) > 96 && L2.get(i) < 123 && !Terminals.contains(L2.get(i))) {
                 isEquivalent = false;
                 break;
             }
         }
+        TerminalNumber = Terminals.size();
+    }
+
+    private void EvaluateString() {
+        Stack<NFA> NFAs = new Stack<>();
+        Stack<Character> opr = new Stack<>();
+        for (int i = 0; i < L1.size(); i++) {
+            if (((int) L1.get(i) > 96 && (int) L1.get(i) < 123) || L1.get(i) == '$') {
+                int TerminalNo = Terminals.indexOf(L1.get(i));
+                NFA curNFA = NFA.NFA_Terminals(TerminalNumber, TerminalNo);
+                NFAs.push(curNFA);
+            } else if (L1.get(i) == '(')
+                opr.push(L1.get(i));
+            else if (L1.get(i) == '.' || L1.get(i) == '+' || L1.get(i) == '*') {
+                while (!opr.isEmpty() && precedence(L1.get(i)) <= precedence(opr.peek())) {
+                    NFAs.push(SingleEvaluate(NFAs, opr));
+                }
+                opr.push(L1.get(i));
+            } else { //)
+                while (opr.peek() != '(') {
+                    NFAs.push(SingleEvaluate(NFAs, opr));
+                }
+                opr.pop();
+            }
+        }
+        while (!opr.isEmpty()) {
+            SingleEvaluate(NFAs, opr);
+        }
+        NFA_L1 = NFAs.pop();
+
+
+        NFAs.clear();
+        opr.clear();
+
+
+        for (int i = 0; i < L2.size(); i++) {
+            if (((int) L2.get(i) > 96 && (int) L2.get(i) < 123) || L2.get(i) == '$') {
+                int TerminalNo = Terminals.indexOf(L2.get(i));
+                NFA curNFA = NFA.NFA_Terminals(TerminalNumber, TerminalNo);
+                NFAs.push(curNFA);
+            } else if (L2.get(i) == '(')
+                opr.push(L2.get(i));
+            else if (L2.get(i) == '.' || L2.get(i) == '+' || L2.get(i) == '*') {
+                while (!opr.isEmpty() && precedence(L2.get(i)) <= precedence(opr.peek())) {
+                    NFAs.push(SingleEvaluate(NFAs, opr));
+                }
+                opr.push(L2.get(i));
+            } else { //)
+                while (opr.peek() != '(') {
+                    NFAs.push(SingleEvaluate(NFAs, opr));
+                }
+                opr.pop();
+            }
+        }
+        while (!opr.isEmpty()) {
+            SingleEvaluate(NFAs, opr);
+        }
+        NFA_L2 = NFAs.pop();
+
+    }
+
+    private NFA SingleEvaluate(Stack<NFA> nfas, Stack<Character> operatprs) {
+        char currOper = operatprs.pop();
+        NFA newNFA;
+        if (currOper == '*') {
+            NFA lastNFA = nfas.pop();
+            newNFA = NFA.NFA_star(lastNFA, TerminalNumber);
+            nfas.push(newNFA);
+        } else { // . or +
+            NFA lastNFA2 = nfas.pop();
+            NFA lastNFA1 = nfas.pop();
+            newNFA = NFA.NFA_Merge(lastNFA1, lastNFA2, currOper, TerminalNumber);
+            nfas.push(newNFA);
+        }
+        return newNFA;
+    }
+
+    private int precedence(char op) {
+        return switch (op) {
+            case '+' -> 1;
+            case '.' -> 2;
+            case '*' -> 3;
+            default -> -1;
+        };
+    }
+
+    public boolean isEquivalent() {
+        if (!isEquivalent) {
+            return false;
+        } else {
+            EvaluateString();
+            //continue
+            return true;
+        }
     }
 
     public void print() {
-        for (int i = 0; i < L1.size(); i++)
+        for (int i = 0; i < NFA_L1.States.size(); i++) {
+            System.out.println(NFA_L1.States.get(i).no);
+            for (int j = 0; j < NFA_L1.States.get(i).Transitions.size(); j++) {
+                for (int k = 0; k < NFA_L1.States.get(i).Transitions.get(j).size(); k++) {
+                    System.out.print(j + ": ");
+                    System.out.print(NFA_L1.States.get(i).Transitions.get(j).get(k).no);
+                    System.out.print(' ');
+                }
+                System.out.print('\n');
+            }
+            System.out.print('\n');
+        }
+        /*for(int i=0;i<L1.size();i++){
             System.out.print(L1.get(i));
+        }*/
     }
 }

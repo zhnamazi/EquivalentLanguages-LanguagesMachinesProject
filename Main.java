@@ -8,7 +8,10 @@ public class Main {
         System.out.println("enter regex2");
         String reg2 = sc.nextLine();
         CompareRegex cr = new CompareRegex(reg1, reg2);
-        cr.print();
+        if (cr.isEquivalent())
+            cr.print();
+        else
+            System.out.print("false");
     }
 
 

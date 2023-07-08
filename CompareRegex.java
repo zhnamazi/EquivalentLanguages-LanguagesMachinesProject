@@ -9,6 +9,8 @@ public class CompareRegex {
     ArrayList<Character> Terminals = new ArrayList<>();
     NFA NFA_L1;
     NFA NFA_L2;
+    DFA DFA_L1;
+    DFA DFA_L2;
     int TerminalNumber;
     boolean isEquivalent = true;
 
@@ -38,8 +40,15 @@ public class CompareRegex {
                     L1.add(s1.charAt(i));
                 } else
                     L1.add(s1.charAt(i));
-            } else if (s1.charAt(i) == '*' || s1.charAt(i) == '+') {
+            } else if (s1.charAt(i) == '*') {
                 if (c == ')' || c == '$' || ((int) c < 123 && (int) c > 96))
+                    L1.add(s1.charAt(i));
+                else {
+                    L1.add('$');
+                    L1.add(s1.charAt(i));
+                }
+            } else if (s1.charAt(i) == '+') {
+                if (c == ')' || c == '$' || c == '*' || ((int) c < 123 && (int) c > 96))
                     L1.add(s1.charAt(i));
                 else {
                     L1.add('$');
@@ -64,8 +73,15 @@ public class CompareRegex {
                     L2.add(s2.charAt(i));
                 } else
                     L2.add(s2.charAt(i));
-            } else if (s2.charAt(i) == '*' || s2.charAt(i) == '+') {
+            } else if (s2.charAt(i) == '*') {
                 if (c == ')' || c == '$' || ((int) c < 123 && (int) c > 96))
+                    L2.add(s2.charAt(i));
+                else {
+                    L2.add('$');
+                    L2.add(s2.charAt(i));
+                }
+            } else if (s2.charAt(i) == '+') {
+                if (c == ')' || c == '$' || c == '*' || ((int) c < 123 && (int) c > 96))
                     L2.add(s2.charAt(i));
                 else {
                     L2.add('$');
@@ -115,7 +131,7 @@ public class CompareRegex {
             }
         }
         while (!opr.isEmpty()) {
-            SingleEvaluate(NFAs, opr);
+            NFAs.push(SingleEvaluate(NFAs, opr));
         }
         NFA_L1 = NFAs.pop();
 
@@ -144,7 +160,7 @@ public class CompareRegex {
             }
         }
         while (!opr.isEmpty()) {
-            SingleEvaluate(NFAs, opr);
+            NFAs.push(SingleEvaluate(NFAs, opr));
         }
         NFA_L2 = NFAs.pop();
 
@@ -156,12 +172,10 @@ public class CompareRegex {
         if (currOper == '*') {
             NFA lastNFA = nfas.pop();
             newNFA = NFA.NFA_star(lastNFA, TerminalNumber);
-            nfas.push(newNFA);
         } else { // . or +
             NFA lastNFA2 = nfas.pop();
             NFA lastNFA1 = nfas.pop();
             newNFA = NFA.NFA_Merge(lastNFA1, lastNFA2, currOper, TerminalNumber);
-            nfas.push(newNFA);
         }
         return newNFA;
     }
@@ -180,26 +194,11 @@ public class CompareRegex {
             return false;
         } else {
             EvaluateString();
-            //continue
-            return true;
+            DFA_L1 = Convert.ConvertNFAtoDFA(NFA_L1, TerminalNumber);
+            DFA_L2 = Convert.ConvertNFAtoDFA(NFA_L2, TerminalNumber);
+            return DFA.isEquivalent(DFA_L1, DFA_L2, TerminalNumber);
         }
     }
 
-    public void print() {
-        for (int i = 0; i < NFA_L1.States.size(); i++) {
-            System.out.println(NFA_L1.States.get(i).no);
-            for (int j = 0; j < NFA_L1.States.get(i).Transitions.size(); j++) {
-                for (int k = 0; k < NFA_L1.States.get(i).Transitions.get(j).size(); k++) {
-                    System.out.print(j + ": ");
-                    System.out.print(NFA_L1.States.get(i).Transitions.get(j).get(k).no);
-                    System.out.print(' ');
-                }
-                System.out.print('\n');
-            }
-            System.out.print('\n');
-        }
-        /*for(int i=0;i<L1.size();i++){
-            System.out.print(L1.get(i));
-        }*/
-    }
+
 }

@@ -9,7 +9,6 @@ public class NFA {
         StateNFA Sfinal = new StateNFA(TerminalNumber, 1);
         Sstart.isStart = true;
         Sfinal.isFinal = true;
-        Sstart.Transitions.add(new ArrayList<>());
         Sstart.Transitions.get(TerminalNo).add(Sfinal);
         nfa.States.add(Sstart);
         nfa.States.add(Sfinal);
@@ -47,8 +46,6 @@ public class NFA {
                 newState.no = no;
                 merged.States.add(newState);
             }
-            //merged.States.addAll(nfa1.States);
-            //merged.States.addAll(nfa2.States);
             end.no = no;
             merged.States.add(end);
         } else {
@@ -74,7 +71,7 @@ public class NFA {
         nfa.States.get(0).isStart = false;
         nfa.States.get(n - 1).isFinal = false;
         StateNFA start = new StateNFA(TerminalNumber, 0);
-        StateNFA end = new StateNFA(TerminalNumber, n + 1);
+        StateNFA end = new StateNFA(TerminalNumber, n+1);
         start.isStart = true;
         end.isFinal = true;
         start.Transitions.get(0).add(nfa.States.get(0));
